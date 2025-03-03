@@ -16,7 +16,6 @@ import {
 import { 
   LocalHospital as HospitalIcon,
   SearchOff as SearchOffIcon,
-  Error as ErrorIcon,
 } from '@mui/icons-material';
 import HospitalCard from './HospitalCard';
 

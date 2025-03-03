@@ -38,47 +38,104 @@ const ThemedApp = () => {
     palette: {
       mode: darkMode ? 'dark' : 'light',
       primary: {
-        main: '#1976d2',
+        main: '#2563eb', // Modern blue
+        light: '#60a5fa',
+        dark: '#1d4ed8',
       },
       secondary: {
-        main: '#dc004e',
+        main: '#7c3aed', // Modern purple
+        light: '#a78bfa',
+        dark: '#5b21b6',
       },
       background: {
-        default: darkMode ? '#121212' : '#f5f5f5',
-        paper: darkMode ? '#1e1e1e' : '#ffffff',
+        default: darkMode ? '#0f172a' : '#f8fafc',
+        paper: darkMode ? '#1e293b' : '#ffffff',
+      },
+      error: {
+        main: '#ef4444',
+      },
+      warning: {
+        main: '#f59e0b',
+      },
+      success: {
+        main: '#10b981',
+      },
+      info: {
+        main: '#3b82f6',
       },
     },
     typography: {
-      fontFamily: '"Roboto", "Helvetica", "Arial", sans-serif',
+      fontFamily: '"Inter", "Roboto", "Helvetica", "Arial", sans-serif',
       h1: {
-        fontWeight: 500,
+        fontWeight: 600,
+        fontSize: '2.5rem',
       },
       h2: {
-        fontWeight: 500,
+        fontWeight: 600,
+        fontSize: '2rem',
       },
       h3: {
-        fontWeight: 500,
+        fontWeight: 600,
+        fontSize: '1.75rem',
+      },
+      h4: {
+        fontWeight: 600,
+        fontSize: '1.5rem',
+      },
+      h5: {
+        fontWeight: 600,
+        fontSize: '1.25rem',
+      },
+      h6: {
+        fontWeight: 600,
+        fontSize: '1rem',
       },
       button: {
         textTransform: 'none',
+        fontWeight: 500,
       },
     },
     shape: {
-      borderRadius: 8,
+      borderRadius: 12,
     },
     components: {
       MuiButton: {
         styleOverrides: {
           root: {
-            borderRadius: 25,
+            borderRadius: 8,
+            textTransform: 'none',
+            fontWeight: 500,
+            padding: '8px 16px',
+          },
+          contained: {
+            boxShadow: 'none',
+            '&:hover': {
+              boxShadow: '0 4px 8px rgba(0, 0, 0, 0.1)',
+            },
           },
         },
       },
       MuiCard: {
         styleOverrides: {
           root: {
-            borderRadius: 12,
-            boxShadow: '0 8px 16px rgba(0, 0, 0, 0.1)',
+            borderRadius: 16,
+            boxShadow: '0 4px 6px rgba(0, 0, 0, 0.05)',
+            border: '1px solid rgba(0, 0, 0, 0.05)',
+          },
+        },
+      },
+      MuiPaper: {
+        styleOverrides: {
+          root: {
+            backgroundImage: 'none',
+          },
+        },
+      },
+      MuiAppBar: {
+        styleOverrides: {
+          root: {
+            backgroundImage: 'none',
+            boxShadow: '0 1px 3px rgba(0, 0, 0, 0.05)',
           },
         },
       },

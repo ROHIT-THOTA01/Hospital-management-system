@@ -1,4 +1,4 @@
-import React, { useContext } from 'react';
+import React from 'react';
 import { Link, useLocation } from 'react-router-dom';
 import {
   Drawer,
@@ -11,224 +11,175 @@ import {
   useMediaQuery,
   Box,
   Typography,
-  Avatar,
-  IconButton,
-  Tooltip,
 } from '@mui/material';
 import {
-  Home as HomeIcon,
-  LocationCity as CityIcon,
-  Add as AddIcon,
   Person as PersonIcon,
   Settings as SettingsIcon,
   Dashboard as DashboardIcon,
   LocalHospital as HospitalIcon,
-  MedicalServices as MedicalIcon,
-  Healing as HealingIcon,
-  ChevronLeft as ChevronLeftIcon,
+  Assignment as ReportsIcon,
+  Help as HelpIcon,
 } from '@mui/icons-material';
-import { AuthContext } from '../../context/AuthContext';
 import { styled } from '@mui/material/styles';
+import { alpha } from '@mui/material/styles';
 
-// Styled components
-const DrawerHeader = styled('div')(({ theme }) => ({
-  display: 'flex',
-  alignItems: 'center',
-  padding: theme.spacing(2),
-  justifyContent: 'space-between',
-  backgroundColor: theme.palette.primary.main,
-  color: theme.palette.primary.contrastText,
+const drawerWidth = 280;
+
+const StyledDrawer = styled(Drawer)(({ theme }) => ({
+  width: drawerWidth,
+  flexShrink: 0,
+  '& .MuiDrawer-paper': {
+    width: drawerWidth,
+    boxSizing: 'border-box',
+    border: 'none',
+    backgroundColor: theme.palette.mode === 'dark'
+      ? alpha(theme.palette.background.paper, 0.95)
+      : theme.palette.background.paper,
+    boxShadow: '0 4px 12px 0 rgba(0,0,0,0.05)',
+    borderRight: `1px solid ${theme.palette.mode === 'dark'
+      ? alpha(theme.palette.common.white, 0.1)
+      : alpha(theme.palette.common.black, 0.1)}`,
+    transition: theme.transitions.create(['width', 'transform'], {
+      duration: theme.transitions.duration.standard,
+    }),
+  },
 }));
 
-const SidebarAvatar = styled(Avatar)(({ theme }) => ({
-  backgroundColor: theme.palette.secondary.main,
-  width: 40,
-  height: 40,
-  marginRight: theme.spacing(2),
+const StyledListItem = styled(ListItem)(({ theme, active }) => ({
+  margin: '4px 12px',
+  borderRadius: theme.shape.borderRadius,
+  transition: 'all 0.3s ease',
+  backgroundColor: active
+    ? theme.palette.mode === 'dark'
+      ? alpha(theme.palette.primary.main, 0.15)
+      : alpha(theme.palette.primary.main, 0.08)
+    : 'transparent',
+  '&:hover': {
+    backgroundColor: theme.palette.mode === 'dark'
+      ? alpha(theme.palette.common.white, 0.08)
+      : alpha(theme.palette.common.black, 0.04),
+    transform: 'translateX(4px)',
+  },
+  '& .MuiListItemIcon-root': {
+    color: active ? 'primary.main' : 'text.primary',
+    minWidth: 40,
+  },
+  '& .MuiListItemText-primary': {
+    fontSize: '0.9rem',
+    fontWeight: active ? 600 : 400,
+    color: active ? 'primary.main' : 'text.primary',
+  },
 }));
+
+const menuItems = [
+  { text: 'Dashboard', icon: <DashboardIcon />, path: '/' },
+  { text: 'Hospitals', icon: <HospitalIcon />, path: '/hospitals' },
+  { text: 'Profile', icon: <PersonIcon />, path: '/profile' },
+  { text: 'Reports', icon: <ReportsIcon />, path: '/reports' },
+  { text: 'Settings', icon: <SettingsIcon />, path: '/settings' },
+  { text: 'Help', icon: <HelpIcon />, path: '/help' },
+];
 
 const Sidebar = ({ open }) => {
-  const { user } = useContext(AuthContext);
   const location = useLocation();
   const theme = useTheme();
   const isMobile = useMediaQuery(theme.breakpoints.down('md'));
 
-  // Define sidebar items with improved icons
-  const sidebarItems = [
-    {
-      text: 'Home',
-      icon: <HomeIcon color="primary" />,
-      path: '/',
-    },
-    {
-      text: 'Find Hospitals',
-      icon: <CityIcon color="primary" />,
-      path: '/',
-    },
-  ];
-
-  // Items that require authentication
-  const authItems = [
-    {
-      text: 'Add Hospital',
-      icon: <AddIcon color="secondary" />,
-      path: '/hospitals/create',
-      requiresAdmin: true,
-    },
-    {
-      text: 'Profile',
-      icon: <PersonIcon color="secondary" />,
-      path: '/profile',
-    },
-    {
-      text: 'Settings',
-      icon: <SettingsIcon color="secondary" />,
-      path: '/settings',
-    },
-  ];
-
-  // Admin only items
-  const adminItems = [
-    {
-      text: 'Dashboard',
-      icon: <DashboardIcon sx={{ color: '#ff9800' }} />,
-      path: '/admin/dashboard',
-    },
-  ];
-
-  const drawerVariant = isMobile ? 'temporary' : 'persistent';
-
   return (
-    <Drawer
-      variant={drawerVariant}
+    <StyledDrawer
+      variant={isMobile ? 'temporary' : 'persistent'}
       open={open}
-      sx={{
-        width: 240,
-        flexShrink: 0,
-        '& .MuiDrawer-paper': {
-          width: 240,
-          boxSizing: 'border-box',
-          top: '64px',
-          height: 'calc(100% - 64px)',
-          borderRight: '1px solid rgba(0, 0, 0, 0.12)',
-          boxShadow: '2px 0 10px rgba(0, 0, 0, 0.1)',
-        },
+      ModalProps={{
+        keepMounted: true, // Better mobile performance
       }}
     >
-      <Box sx={{ overflow: 'auto' }}>
-        {user && (
-          <Box sx={{ p: 2, display: 'flex', alignItems: 'center' }}>
-            <SidebarAvatar>
-              {user.name ? user.name.charAt(0).toUpperCase() : 'U'}
-            </SidebarAvatar>
-            <Box>
-              <Typography variant="subtitle1" sx={{ fontWeight: 'bold' }}>
-                {user.name || 'User'}
-              </Typography>
-              <Typography variant="body2" color="text.secondary">
-                {user.role === 'admin' ? 'Administrator' : 'User'}
-              </Typography>
-            </Box>
-          </Box>
-        )}
-
-        <List>
-          {sidebarItems.map((item) => (
-            <ListItem
-              button
-              key={item.text}
-              component={Link}
-              to={item.path}
-              selected={location.pathname === item.path}
-              sx={{
-                borderRadius: '0 20px 20px 0',
-                margin: '4px 0',
-                '&.Mui-selected': {
-                  backgroundColor: 'rgba(25, 118, 210, 0.12)',
-                  '&:hover': {
-                    backgroundColor: 'rgba(25, 118, 210, 0.18)',
-                  },
-                },
-                '&:hover': {
-                  backgroundColor: 'rgba(0, 0, 0, 0.04)',
-                },
-              }}
-            >
-              <ListItemIcon>{item.icon}</ListItemIcon>
-              <ListItemText primary={item.text} />
-            </ListItem>
-          ))}
-        </List>
-
-        {user && (
-          <>
-            <Divider sx={{ my: 1 }} />
-            <List>
-              {authItems
-                .filter((item) => !item.requiresAdmin || (user && user.role === 'admin'))
-                .map((item) => (
-                  <ListItem
-                    button
-                    key={item.text}
-                    component={Link}
-                    to={item.path}
-                    selected={location.pathname === item.path}
-                    sx={{
-                      borderRadius: '0 20px 20px 0',
-                      margin: '4px 0',
-                      '&.Mui-selected': {
-                        backgroundColor: 'rgba(220, 0, 78, 0.12)',
-                        '&:hover': {
-                          backgroundColor: 'rgba(220, 0, 78, 0.18)',
-                        },
-                      },
-                      '&:hover': {
-                        backgroundColor: 'rgba(0, 0, 0, 0.04)',
-                      },
-                    }}
-                  >
-                    <ListItemIcon>{item.icon}</ListItemIcon>
-                    <ListItemText primary={item.text} />
-                  </ListItem>
-                ))}
-            </List>
-          </>
-        )}
-
-        {user && user.role === 'admin' && (
-          <>
-            <Divider sx={{ my: 1 }} />
-            <List>
-              {adminItems.map((item) => (
-                <ListItem
-                  button
-                  key={item.text}
-                  component={Link}
-                  to={item.path}
-                  selected={location.pathname === item.path}
-                  sx={{
-                    borderRadius: '0 20px 20px 0',
-                    margin: '4px 0',
-                    '&.Mui-selected': {
-                      backgroundColor: 'rgba(255, 152, 0, 0.12)',
-                      '&:hover': {
-                        backgroundColor: 'rgba(255, 152, 0, 0.18)',
-                      },
-                    },
-                    '&:hover': {
-                      backgroundColor: 'rgba(0, 0, 0, 0.04)',
-                    },
-                  }}
-                >
-                  <ListItemIcon>{item.icon}</ListItemIcon>
-                  <ListItemText primary={item.text} />
-                </ListItem>
-              ))}
-            </List>
-          </>
-        )}
+      <Box sx={{ 
+        p: 3, 
+        display: 'flex', 
+        alignItems: 'center',
+        gap: 2,
+        height: 64, // Match navbar height
+        borderBottom: `1px solid ${theme.palette.mode === 'dark'
+          ? alpha(theme.palette.common.white, 0.1)
+          : alpha(theme.palette.common.black, 0.1)}`
+      }}>
+        <HospitalIcon sx={{ 
+          color: 'primary.main',
+          fontSize: 32
+        }} />
+        <Typography
+          variant="h6"
+          sx={{
+            fontWeight: 600,
+            color: 'primary.main',
+            letterSpacing: '0.5px',
+          }}
+        >
+          MEDCARE
+        </Typography>
       </Box>
-    </Drawer>
+
+      <Box sx={{ mt: 2, px: 2 }}>
+        <Typography
+          variant="overline"
+          sx={{
+            px: 1,
+            color: 'text.secondary',
+            fontWeight: 500,
+            letterSpacing: '1px',
+          }}
+        >
+          MAIN MENU
+        </Typography>
+      </Box>
+      
+      <List sx={{ px: 1, py: 1 }}>
+        {menuItems.map((item) => (
+          <StyledListItem
+            key={item.text}
+            component={Link}
+            to={item.path}
+            active={location.pathname === item.path ? 1 : 0}
+          >
+            <ListItemIcon>{item.icon}</ListItemIcon>
+            <ListItemText 
+              primary={item.text}
+              primaryTypographyProps={{
+                fontSize: '0.9rem',
+                fontWeight: location.pathname === item.path ? 600 : 400,
+              }}
+            />
+          </StyledListItem>
+        ))}
+      </List>
+
+      <Box sx={{ flexGrow: 1 }} />
+
+      <Box sx={{ p: 2, mt: 'auto' }}>
+        <Box
+          sx={{
+            p: 2,
+            borderRadius: 2,
+            bgcolor: theme => theme.palette.mode === 'dark'
+              ? alpha(theme.palette.primary.main, 0.1)
+              : alpha(theme.palette.primary.main, 0.05),
+            display: 'flex',
+            alignItems: 'center',
+            gap: 2,
+          }}
+        >
+          <HelpIcon color="primary" />
+          <Box>
+            <Typography variant="subtitle2" color="primary" fontWeight={600}>
+              Need Help?
+            </Typography>
+            <Typography variant="caption" color="text.secondary">
+              Check our docs
+            </Typography>
+          </Box>
+        </Box>
+      </Box>
+    </StyledDrawer>
   );
 };
 

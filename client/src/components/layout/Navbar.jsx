@@ -21,7 +21,6 @@ import {
   LocalHospital as HospitalIcon,
   Menu as MenuIcon,
   Notifications as NotificationIcon,
-  AccountCircle,
   ExitToApp as LogoutIcon,
   Add as AddIcon,
 } from '@mui/icons-material';
@@ -34,10 +33,14 @@ import { API_BASE_URL } from '../../config';
 // Styled components
 const SearchContainer = styled('div')(({ theme }) => ({
   position: 'relative',
-  borderRadius: theme.shape.borderRadius * 3,
-  backgroundColor: alpha(theme.palette.common.white, 0.15),
+  borderRadius: theme.shape.borderRadius,
+  backgroundColor: theme.palette.mode === 'dark'
+    ? alpha(theme.palette.common.white, 0.08)
+    : alpha(theme.palette.common.black, 0.04),
   '&:hover': {
-    backgroundColor: alpha(theme.palette.common.white, 0.25),
+    backgroundColor: theme.palette.mode === 'dark'
+      ? alpha(theme.palette.common.white, 0.12)
+      : alpha(theme.palette.common.black, 0.06),
   },
   marginRight: theme.spacing(2),
   marginLeft: 0,
@@ -47,6 +50,9 @@ const SearchContainer = styled('div')(({ theme }) => ({
     width: 'auto',
   },
   transition: 'all 0.3s ease',
+  border: `1px solid ${theme.palette.mode === 'dark'
+    ? alpha(theme.palette.common.white, 0.1)
+    : alpha(theme.palette.common.black, 0.1)}`,
 }));
 
 const SearchIconWrapper = styled('div')(({ theme }) => ({
@@ -74,12 +80,18 @@ const StyledInputBase = styled(InputBase)(({ theme }) => ({
 }));
 
 const StyledAppBar = styled(AppBar)(({ theme }) => ({
-  boxShadow: '0 4px 12px 0 rgba(0, 0, 0, 0.05)',
-  backdropFilter: 'blur(10px)',
+  boxShadow: 'none',
+  backdropFilter: 'blur(8px)',
   backgroundColor: theme.palette.mode === 'dark' 
-    ? alpha(theme.palette.background.paper, 0.9)
-    : alpha(theme.palette.primary.main, 0.9),
+    ? alpha(theme.palette.background.paper, 0.95)
+    : alpha(theme.palette.background.paper, 0.95),
+  borderBottom: `1px solid ${theme.palette.mode === 'dark' 
+    ? alpha(theme.palette.common.white, 0.1)
+    : alpha(theme.palette.common.black, 0.1)}`,
   transition: 'all 0.3s ease',
+  position: 'sticky',
+  top: 0,
+  zIndex: theme.zIndex.drawer + 1,
 }));
 
 const LogoContainer = styled(Box)(({ theme }) => ({
@@ -138,7 +150,7 @@ const Navbar = ({ toggleDarkMode, toggleSidebar }) => {
       setSearchTimeout(timeoutId);
       return () => clearTimeout(timeoutId);
     }
-  }, [searchValue, navigate]);
+  }, [searchValue, navigate, searchTimeout]);
 
   const handleSearchChange = (e) => {
     const value = e.target.value;
@@ -193,20 +205,29 @@ const Navbar = ({ toggleDarkMode, toggleSidebar }) => {
 
   return (
     <>
-      <StyledAppBar position="fixed">
-        <Toolbar>
+      <StyledAppBar>
+        <Toolbar sx={{ 
+          px: { xs: 2, sm: 4 },
+          minHeight: 64,
+          display: 'flex',
+          alignItems: 'center',
+          gap: 2
+        }}>
           <IconButton
             color="inherit"
             aria-label="open drawer"
             edge="start"
             onClick={toggleSidebar}
-            sx={{ mr: 2 }}
+            sx={{ mr: { xs: 1, sm: 2 } }}
           >
             <MenuIcon />
           </IconButton>
           
-          <LogoContainer component={Link} to="/" sx={{ flexGrow: { xs: 1, md: 0 } }}>
-            <HospitalIcon />
+          <LogoContainer component={Link} to="/" sx={{ 
+            flexGrow: { xs: 0, md: 0 },
+            minWidth: 'fit-content'
+          }}>
+            <HospitalIcon sx={{ color: 'primary.main' }} />
             <Typography
               variant="h6"
               noWrap
@@ -214,14 +235,21 @@ const Navbar = ({ toggleDarkMode, toggleSidebar }) => {
               sx={{
                 display: { xs: 'none', sm: 'block' },
                 fontWeight: 'bold',
-                letterSpacing: '0.5px'
+                letterSpacing: '0.5px',
+                color: 'text.primary',
+                ml: 1
               }}
             >
               MEDCARE
             </Typography>
           </LogoContainer>
 
-          <SearchContainer sx={{ flexGrow: 1, maxWidth: { xs: '100%', md: '400px' }, display: 'flex' }}>
+          <SearchContainer sx={{ 
+            flexGrow: 1,
+            maxWidth: { sm: '100%', md: '400px' },
+            mx: { xs: 1, md: 4 },
+            position: 'relative'
+          }}>
             <SearchIconWrapper>
               <SearchIcon />
             </SearchIconWrapper>
@@ -230,38 +258,50 @@ const Navbar = ({ toggleDarkMode, toggleSidebar }) => {
               inputProps={{ 'aria-label': 'search' }}
               value={searchValue}
               onChange={handleSearchChange}
+              fullWidth
             />
           </SearchContainer>
           
-          {user && (
-            <Button
-              variant="contained"
-              color="secondary"
-              startIcon={<AddIcon />}
-              component={Link}
-              to="/hospitals/create"
-              sx={{
-                ml: 2,
-                borderRadius: '20px',
-                px: 2,
-                fontWeight: 'bold',
-                boxShadow: '0 4px 10px rgba(220, 0, 78, 0.25)',
-                '&:hover': {
-                  boxShadow: '0 6px 15px rgba(220, 0, 78, 0.3)',
-                  transform: 'translateY(-2px)',
-                },
-                transition: 'all 0.3s ease',
-              }}
-            >
-              Create Hospital
-            </Button>
-          )}
-          
-          <Box sx={{ flexGrow: 1 }} />
-          
-          <Box sx={{ display: 'flex', alignItems: 'center' }}>
-            <Tooltip title={darkMode ? 'Switch to Light Mode' : 'Switch to Dark Mode'}>
-              <IconButton color="inherit" onClick={toggleDarkMode} sx={{ ml: 1 }}>
+          <Box sx={{ 
+            display: 'flex', 
+            alignItems: 'center', 
+            gap: { xs: 0.5, sm: 1 },
+            ml: 'auto'
+          }}>
+            {user && (
+              <Button
+                variant="contained"
+                color="primary"
+                startIcon={<AddIcon />}
+                component={Link}
+                to="/hospitals/create"
+                sx={{
+                  display: { xs: 'none', md: 'flex' },
+                  borderRadius: 2,
+                  px: 2,
+                  py: 1,
+                  fontWeight: 500,
+                  textTransform: 'none',
+                  whiteSpace: 'nowrap',
+                  '&:hover': {
+                    transform: 'translateY(-1px)',
+                  },
+                }}
+              >
+                Add Hospital
+              </Button>
+            )}
+            
+            <Tooltip title={darkMode ? 'Light Mode' : 'Dark Mode'}>
+              <IconButton 
+                color="inherit" 
+                onClick={toggleDarkMode}
+                sx={{ 
+                  bgcolor: theme => theme.palette.mode === 'dark'
+                    ? alpha(theme.palette.common.white, 0.08)
+                    : alpha(theme.palette.common.black, 0.04),
+                }}
+              >
                 {darkMode ? <LightModeIcon /> : <DarkModeIcon />}
               </IconButton>
             </Tooltip>
@@ -269,7 +309,15 @@ const Navbar = ({ toggleDarkMode, toggleSidebar }) => {
             {user ? (
               <>
                 <Tooltip title="Notifications">
-                  <IconButton color="inherit" sx={{ ml: 1 }}>
+                  <IconButton 
+                    color="inherit"
+                    sx={{ 
+                      display: { xs: 'none', sm: 'flex' },
+                      bgcolor: theme => theme.palette.mode === 'dark'
+                        ? alpha(theme.palette.common.white, 0.08)
+                        : alpha(theme.palette.common.black, 0.04),
+                    }}
+                  >
                     <Badge badgeContent={4} color="error">
                       <NotificationIcon />
                     </Badge>
@@ -283,14 +331,18 @@ const Navbar = ({ toggleDarkMode, toggleSidebar }) => {
                     aria-controls={menuId}
                     aria-haspopup="true"
                     onClick={handleProfileMenuOpen}
-                    color="inherit"
-                    sx={{ ml: 1 }}
+                    sx={{ 
+                      ml: { xs: 0.5, sm: 1 },
+                      bgcolor: theme => theme.palette.mode === 'dark'
+                        ? alpha(theme.palette.common.white, 0.08)
+                        : alpha(theme.palette.common.black, 0.04),
+                    }}
                   >
                     <Avatar 
                       sx={{ 
                         width: 32, 
                         height: 32, 
-                        bgcolor: 'secondary.main',
+                        bgcolor: 'primary.main',
                         fontSize: '0.875rem',
                         fontWeight: 'bold'
                       }}
@@ -301,17 +353,22 @@ const Navbar = ({ toggleDarkMode, toggleSidebar }) => {
                 </Tooltip>
               </>
             ) : (
-              <>
+              <Box sx={{ display: 'flex', gap: 1 }}>
                 <Button 
                   color="inherit" 
                   component={Link} 
                   to="/login"
                   sx={{ 
-                    ml: 1,
-                    borderRadius: '20px',
+                    display: { xs: 'none', sm: 'flex' },
+                    borderRadius: 2,
                     px: 2,
+                    fontWeight: 500,
+                    textTransform: 'none',
+                    whiteSpace: 'nowrap',
                     '&:hover': {
-                      backgroundColor: 'rgba(255, 255, 255, 0.2)',
+                      bgcolor: theme => theme.palette.mode === 'dark'
+                        ? alpha(theme.palette.common.white, 0.08)
+                        : alpha(theme.palette.common.black, 0.04),
                     }
                   }}
                 >
@@ -319,22 +376,23 @@ const Navbar = ({ toggleDarkMode, toggleSidebar }) => {
                 </Button>
                 <Button 
                   variant="contained" 
-                  color="secondary" 
+                  color="primary" 
                   component={Link} 
                   to="/register"
                   sx={{ 
-                    ml: 1,
-                    borderRadius: '20px',
+                    borderRadius: 2,
                     px: 2,
-                    boxShadow: '0 4px 10px rgba(220, 0, 78, 0.25)',
+                    fontWeight: 500,
+                    textTransform: 'none',
+                    whiteSpace: 'nowrap',
                     '&:hover': {
-                      boxShadow: '0 6px 15px rgba(220, 0, 78, 0.3)',
+                      transform: 'translateY(-1px)',
                     }
                   }}
                 >
                   Register
                 </Button>
-              </>
+              </Box>
             )}
           </Box>
         </Toolbar>

@@ -16,7 +16,6 @@ import {
   ListItemIcon,
   ListItemText,
   ListItemSecondaryAction,
-  IconButton,
   Dialog,
   DialogTitle,
   DialogContent,
@@ -48,7 +47,7 @@ const SettingsSection = styled(Paper)(({ theme }) => ({
 
 const Settings = () => {
   const { darkMode, toggleDarkMode } = useContext(ThemeContext);
-  const { user } = useContext(AuthContext);
+  const { user, logout } = useContext(AuthContext);
   
   const [settings, setSettings] = useState({
     emailNotifications: true,
@@ -67,6 +66,8 @@ const Settings = () => {
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [snackbarOpen, setSnackbarOpen] = useState(false);
   const [snackbarMessage, setSnackbarMessage] = useState('');
+  
+  const userEmail = user?.email || 'Not available';
   
   const handleSettingChange = (setting) => (event) => {
     setSettings({
@@ -128,6 +129,10 @@ const Settings = () => {
         <Typography variant="h4" component="h1" gutterBottom align="center">
           Account Settings
         </Typography>
+        
+        <Alert severity="info" sx={{ mb: 3 }}>
+          Logged in as: {userEmail}
+        </Alert>
         
         <Grid container spacing={3}>
           <Grid item xs={12} md={8}>
