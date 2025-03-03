@@ -119,7 +119,7 @@ const UserGuide = () => {
           <Button
             variant="contained"
             startIcon={<GitHubIcon />}
-            href="https://github.com/vikash0512/Hospital-Management-System.git"
+            href="https://github.com/ROHIT-THOTA01/Hospital-management-system.git"
             target="_blank"
             rel="noopener noreferrer"
             sx={{
