@@ -1,6 +1,6 @@
 import React, { createContext, useState, useEffect } from 'react';
-import axios from 'axios';
-import { API_BASE_URL } from '../config';
+import { authAPI } from '../services/api';
+import { STORAGE_KEYS } from '../config';
 
 export const AuthContext = createContext();
 
@@ -10,101 +10,92 @@ export const AuthProvider = ({ children }) => {
   const [error, setError] = useState(null);
 
   useEffect(() => {
-    // Check if user is logged in
-    const checkLoggedIn = async () => {
-      if (localStorage.getItem('token')) {
-        try {
-          const config = {
-            headers: {
-              Authorization: `Bearer ${localStorage.getItem('token')}`,
-            },
-          };
-
-          const res = await axios.get(`${API_BASE_URL}/auth/me`, config);
-
-          setUser(res.data.data);
-          setLoading(false);
-        } catch (err) {
-          localStorage.removeItem('token');
-          setUser(null);
-          setLoading(false);
-          setError('Authentication failed. Please log in again.');
-        }
-      } else {
-        setUser(null);
-        setLoading(false);
+    const initAuth = async () => {
+      const storedUser = localStorage.getItem(STORAGE_KEYS.USER_DATA);
+      if (storedUser) {
+        setUser(JSON.parse(storedUser));
       }
+      setLoading(false);
     };
 
-    checkLoggedIn();
+    initAuth();
   }, []);
 
-  // Register user
+  const login = async (credentials) => {
+    try {
+      setError(null);
+      const response = await authAPI.login(credentials);
+      const { token, user: userData } = response.data;
+      
+      localStorage.setItem(STORAGE_KEYS.AUTH_TOKEN, token);
+      localStorage.setItem(STORAGE_KEYS.USER_DATA, JSON.stringify(userData));
+      
+      setUser(userData);
+      return userData;
+    } catch (err) {
+      setError(err.response?.data?.message || 'Login failed');
+      throw err;
+    }
+  };
+
   const register = async (userData) => {
     try {
-      const res = await axios.post(`${API_BASE_URL}/auth/register`, userData);
-
-      if (res.data.success) {
-        localStorage.setItem('token', res.data.data.token);
-        setUser(res.data.data);
-        setError(null);
-        return true;
-      }
+      setError(null);
+      const response = await authAPI.register(userData);
+      const { token, user: newUser } = response.data;
+      
+      localStorage.setItem(STORAGE_KEYS.AUTH_TOKEN, token);
+      localStorage.setItem(STORAGE_KEYS.USER_DATA, JSON.stringify(newUser));
+      
+      setUser(newUser);
+      return newUser;
     } catch (err) {
-      setError(
-        err.response && err.response.data.error
-          ? err.response.data.error
-          : 'Registration failed. Please try again.'
-      );
-      return false;
+      setError(err.response?.data?.message || 'Registration failed');
+      throw err;
     }
   };
 
-  // Login user
-  const login = async (userData) => {
+  const logout = async () => {
     try {
-      const res = await axios.post(`${API_BASE_URL}/auth/login`, userData);
-
-      if (res.data.success) {
-        localStorage.setItem('token', res.data.data.token);
-        setUser(res.data.data);
-        setError(null);
-        return true;
-      }
+      await authAPI.logout();
     } catch (err) {
-      setError(
-        err.response && err.response.data.error
-          ? err.response.data.error
-          : 'Login failed. Please check your credentials.'
-      );
-      return false;
+      console.error('Logout error:', err);
+    } finally {
+      localStorage.removeItem(STORAGE_KEYS.AUTH_TOKEN);
+      localStorage.removeItem(STORAGE_KEYS.USER_DATA);
+      setUser(null);
     }
   };
 
-  // Logout user
-  const logout = () => {
-    localStorage.removeItem('token');
-    setUser(null);
+  const updateProfile = async (data) => {
+    try {
+      setError(null);
+      const response = await authAPI.updateProfile(data);
+      const updatedUser = response.data;
+      
+      localStorage.setItem(STORAGE_KEYS.USER_DATA, JSON.stringify(updatedUser));
+      setUser(updatedUser);
+      
+      return updatedUser;
+    } catch (err) {
+      setError(err.response?.data?.message || 'Profile update failed');
+      throw err;
+    }
   };
 
-  // Clear errors
-  const clearError = () => {
-    setError(null);
+  const value = {
+    user,
+    loading,
+    error,
+    login,
+    register,
+    logout,
+    updateProfile,
   };
 
   return (
-    <AuthContext.Provider
-      value={{
-        user,
-        loading,
-        error,
-        register,
-        login,
-        logout,
-        clearError,
-      }}
-    >
-      {children}
+    <AuthContext.Provider value={value}>
+      {!loading && children}
     </AuthContext.Provider>
   );
 }; 

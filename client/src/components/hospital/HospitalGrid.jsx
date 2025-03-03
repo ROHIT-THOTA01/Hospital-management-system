@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { 
   Grid, 
   Box, 
@@ -17,10 +17,48 @@ import {
   LocalHospital as HospitalIcon,
   SearchOff as SearchOffIcon,
 } from '@mui/icons-material';
+import { alpha } from '@mui/material/styles';
 import HospitalCard from './HospitalCard';
+import { hospitalsAPI } from '../../services/api';
 
-const HospitalGrid = ({ hospitals, loading, error, page, totalPages, onPageChange }) => {
+const HospitalGrid = ({ searchQuery }) => {
   const theme = useTheme();
+  const [hospitals, setHospitals] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
+  const [page, setPage] = useState(1);
+  const [totalPages, setTotalPages] = useState(1);
+
+  useEffect(() => {
+    const fetchHospitals = async () => {
+      try {
+        setLoading(true);
+        setError(null);
+        
+        const params = {
+          page,
+          limit: 12,
+          ...(searchQuery && { city: searchQuery }),
+        };
+        
+        const response = await hospitalsAPI.getAll(params);
+        const { data, pagination } = response.data;
+        
+        setHospitals(data);
+        setTotalPages(pagination.totalPages);
+      } catch (err) {
+        setError(err.response?.data?.message || 'Failed to fetch hospitals');
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchHospitals();
+  }, [page, searchQuery]);
+
+  const handlePageChange = (event, value) => {
+    setPage(value);
+  };
 
   if (loading) {
     return (
@@ -76,7 +114,9 @@ const HospitalGrid = ({ hospitals, loading, error, page, totalPages, onPageChang
           No hospitals found
         </Typography>
         <Typography variant="body1" align="center" color="text.secondary" sx={{ mt: 1, maxWidth: 500 }}>
-          We couldn't find any hospitals matching your search criteria. Try adjusting your search or explore other cities.
+          {searchQuery 
+            ? `We couldn't find any hospitals in "${searchQuery}". Try searching for a different city.`
+            : 'We couldn't find any hospitals. Please try again later.'}
         </Typography>
       </Box>
     );
@@ -87,7 +127,7 @@ const HospitalGrid = ({ hospitals, loading, error, page, totalPages, onPageChang
       <Box sx={{ mb: 4, display: 'flex', alignItems: 'center' }}>
         <HospitalIcon color="primary" sx={{ fontSize: 28, mr: 1.5 }} />
         <Typography variant="h4" component="h2" sx={{ fontWeight: 600 }}>
-          Hospitals
+          {searchQuery ? `Hospitals in ${searchQuery}` : 'All Hospitals'}
         </Typography>
         <Box sx={{ flexGrow: 1 }} />
         <Paper 
@@ -132,7 +172,7 @@ const HospitalGrid = ({ hospitals, loading, error, page, totalPages, onPageChang
           <Pagination
             count={totalPages}
             page={page}
-            onChange={onPageChange}
+            onChange={handlePageChange}
             color="primary"
             size="large"
             showFirstButton
@@ -151,10 +191,5 @@ const HospitalGrid = ({ hospitals, loading, error, page, totalPages, onPageChang
     </Box>
   );
 };
-
-// Helper function for alpha color
-function alpha(color, opacity) {
-  return color + opacity.toString(16).padStart(2, '0');
-}
 
 export default HospitalGrid; 
